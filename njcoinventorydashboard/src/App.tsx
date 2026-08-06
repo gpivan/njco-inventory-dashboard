@@ -33,6 +33,7 @@ function App() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [nav, setNav] = useState<NavId>('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [filters, setFilters] = useState<Filters>({ q: '', status: 'all', cat: 'all', size: 'all', salesstatus: 'all', sort: 'newest' });
@@ -76,10 +77,30 @@ function App() {
     };
   }, []);
 
-  // persist every change (add/edit/delete/sale/restock) once the initial load has settled
+  // persist every change (add/edit/delete/sale/restock) once the initial load has settled.
+  // the Apps Script backend occasionally returns a non-JSON error page (quota hiccup, cold
+  // start, etc.) — retry with backoff instead of silently dropping the change, and surface
+  // a persistent warning if it truly can't save so stale data doesn't look like it's synced.
   useEffect(() => {
     if (!loaded) return;
-    saveProducts(products);
+    let cancelled = false;
+    let attempt = 0;
+    const trySave = () => {
+      saveProducts(products).then((ok) => {
+        if (cancelled) return;
+        if (ok) {
+          setSaveError(false);
+          return;
+        }
+        attempt += 1;
+        setSaveError(true);
+        setTimeout(trySave, Math.min(2000 * attempt, 15000));
+      });
+    };
+    trySave();
+    return () => {
+      cancelled = true;
+    };
   }, [products, loaded]);
 
   // when the section changes: set a sensible sort + status filter for it
@@ -362,6 +383,11 @@ function App() {
       {liveDetail && <DetailsDrawer p={liveDetail} onClose={() => setDetail(null)} on={on} />}
 
       {toast && <div className="toast">{toast}</div>}
+      {saveError && (
+        <div className="toast" style={{ background: 'var(--danger, #b3261e)' }}>
+          Couldn&apos;t save your last change — retrying in the background. Don&apos;t close this tab yet.
+        </div>
+      )}
     </>
   );
 }
