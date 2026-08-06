@@ -6,6 +6,7 @@ import { ProductsSection, InventorySection, SalesSection, DashboardOverview } fr
 import { AddProductModal, RecordSaleModal, RestockModal, DetailsDrawer, type ProductFormValues } from './modals/modals';
 import { MobileView } from './mobile/mobile';
 import { useIsMobile } from './useIsMobile';
+import { fetchProducts, saveProducts } from './api';
 import { PRODUCTS, SIZES, SORTS, overallStatus, salesStatus, todayStr } from './data';
 import type { ActionType, Filters, NavId, Product } from './types';
 
@@ -30,6 +31,7 @@ type ModalState = { type: 'add' } | { type: 'sale'; product: Product } | { type:
 
 function App() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [loaded, setLoaded] = useState(false);
   const [nav, setNav] = useState<NavId>('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [filters, setFilters] = useState<Filters>({ q: '', status: 'all', cat: 'all', size: 'all', salesstatus: 'all', sort: 'newest' });
@@ -40,6 +42,26 @@ function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const isMobile = useIsMobile(760);
+
+  // load persisted products on first mount; fall back to the seed catalogue if
+  // the backend isn't configured yet or the sheet is empty
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts().then((remote) => {
+      if (cancelled) return;
+      if (remote && remote.length > 0) setProducts(remote);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // persist every change (add/edit/delete/sale/restock) once the initial load has settled
+  useEffect(() => {
+    if (!loaded) return;
+    saveProducts(products);
+  }, [products, loaded]);
 
   // when the section changes: set a sensible sort + status filter for it
   useEffect(() => {
@@ -264,6 +286,16 @@ function App() {
         return <DashboardOverview all={products} on={on} goTo={setNav} />;
     }
   };
+
+  if (!loaded) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+        <div className="empty">
+          <b>Loading NJ&amp;CO inventory…</b>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
