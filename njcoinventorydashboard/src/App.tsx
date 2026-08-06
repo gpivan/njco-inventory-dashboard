@@ -32,6 +32,7 @@ type ModalState = { type: 'add' } | { type: 'sale'; product: Product } | { type:
 function App() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [nav, setNav] = useState<NavId>('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [filters, setFilters] = useState<Filters>({ q: '', status: 'all', cat: 'all', size: 'all', salesstatus: 'all', sort: 'newest' });
@@ -44,14 +45,32 @@ function App() {
   const isMobile = useIsMobile(760);
 
   // load persisted products on first mount; fall back to the seed catalogue if
-  // the backend isn't configured yet or the sheet is empty
+  // the backend isn't configured yet or the sheet is genuinely empty
   useEffect(() => {
     let cancelled = false;
-    fetchProducts().then((remote) => {
-      if (cancelled) return;
-      if (remote && remote.length > 0) setProducts(remote);
-      setLoaded(true);
-    });
+    let attempt = 0;
+    const load = () => {
+      fetchProducts().then((remote) => {
+        if (cancelled) return;
+        if (remote !== null) {
+          // fetch succeeded — trust it, even if it's an empty array (deliberately cleared sheet)
+          if (remote.length > 0) setProducts(remote);
+          setLoaded(true);
+          setLoadError(false);
+          return;
+        }
+        // fetch failed (network error, backend not configured, cold-start timeout, bad secret, etc.)
+        // never mark as loaded here: doing so would let the autosave effect below overwrite the
+        // real remote data with the local default catalogue. Retry instead.
+        attempt += 1;
+        if (attempt <= 5) {
+          setTimeout(load, Math.min(2000 * attempt, 10000));
+        } else {
+          setLoadError(true);
+        }
+      });
+    };
+    load();
     return () => {
       cancelled = true;
     };
@@ -291,7 +310,15 @@ function App() {
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
         <div className="empty">
-          <b>Loading NJ&amp;CO inventory…</b>
+          {loadError ? (
+            <>
+              <b>Couldn&apos;t reach the inventory backend.</b>
+              <p>Your data is safe — nothing will be changed until this reconnects. Check your connection and try again.</p>
+              <button type="button" onClick={() => window.location.reload()}>Retry</button>
+            </>
+          ) : (
+            <b>Loading NJ&amp;CO inventory…</b>
+          )}
         </div>
       </div>
     );
