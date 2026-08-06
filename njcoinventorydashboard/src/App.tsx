@@ -54,8 +54,11 @@ function App() {
       fetchProducts().then((remote) => {
         if (cancelled) return;
         if (remote !== null) {
-          // fetch succeeded — trust it, even if it's an empty array (deliberately cleared sheet)
-          if (remote.length > 0) setProducts(remote);
+          // fetch succeeded — trust it, even if it's an empty array (deliberately cleared sheet).
+          // Do NOT gate this on remote.length: skipping setProducts for an empty result leaves
+          // the local default seed in state, and the autosave effect below would then save
+          // those defaults right back over the intentionally-emptied sheet.
+          setProducts(remote);
           setLoaded(true);
           setLoadError(false);
           return;
