@@ -1,13 +1,22 @@
 /* ============ NJ&CO — shared UI primitives ============ */
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
+import { imageSrc } from '../images';
 import { SIZES, STATUS_LABEL, TONES, sizeStatus, salesStatus, SALES_LABEL, SALES_BADGE_CLS } from '../data';
 import type { Product, Size, Status } from '../types';
 
-export function Thumb({ tone, label, size = 46, radius }: { tone: Product['tone']; label: string; size?: number | string; radius?: number }) {
+export function Thumb({ tone, label, image, size = 46, radius }: { tone: Product['tone']; label: string; image?: string; size?: number | string; radius?: number }) {
   const bg = TONES[tone] || TONES.beige;
+  const src = imageSrc(image);
+  // remember which src failed so a changed link gets a fresh attempt
+  const [failed, setFailed] = useState('');
+  const showImg = !!src && failed !== src;
   return (
-    <div className="thumb" style={{ width: size, height: size, background: bg, borderRadius: radius }}>
-      <span className="lab">{label}</span>
+    <div className={'thumb' + (showImg ? ' has-img' : '')} style={{ width: size, height: size, background: bg, borderRadius: radius }}>
+      {showImg ? (
+        <img src={src} alt={label} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(src)} />
+      ) : (
+        <span className="lab">{label}</span>
+      )}
     </div>
   );
 }

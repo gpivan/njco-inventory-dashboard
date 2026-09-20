@@ -12,6 +12,7 @@ export interface Product {
   cat: string;
   tone: Tone;
   label: string;
+  image?: string; // Drive/other image link; empty → tinted placeholder
   price: number;
   target: number;
   ts: number;

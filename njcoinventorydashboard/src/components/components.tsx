@@ -276,7 +276,7 @@ export function ProductCard({ p, on, newId }: { p: Product; on: (type: ActionTyp
   return (
     <div className={'pcard' + (p.id === newId ? ' fade-row' : '')} onClick={() => on('view', p)}>
       <div className="ph">
-        <Thumb tone={p.tone} label={p.label} size="100%" radius={0} />
+        <Thumb tone={p.tone} label={p.label} image={p.image} size="100%" radius={0} />
         <Badge status={st} />
         <span className="ph-cat">{p.cat}</span>
       </div>
@@ -422,7 +422,7 @@ export function InventoryTable({
                 </td>
                 <td>
                   <div className="prod-cell">
-                    <Thumb tone={p.tone} label={p.label} size={44} />
+                    <Thumb tone={p.tone} label={p.label} image={p.image} size={44} />
                     <div className="prodname">
                       <b>{p.name}</b>
                       <span>{peso(p.price)}</span>
@@ -500,7 +500,7 @@ export function SalesTable({ products, on, newId }: { products: Product[]; on: (
               <tr key={p.id} className={p.id === newId ? 'fade-row' : ''} onClick={() => on('view', p)} style={{ cursor: 'pointer' }}>
                 <td>
                   <div className="prod-cell">
-                    <Thumb tone={p.tone} label={p.label} size={44} />
+                    <Thumb tone={p.tone} label={p.label} image={p.image} size={44} />
                     <div className="prodname">
                       <b>{p.name}</b>
                       <span>#{p.id.toUpperCase()}</span>

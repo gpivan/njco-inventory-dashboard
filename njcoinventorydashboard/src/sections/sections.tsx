@@ -277,7 +277,7 @@ export function DashboardOverview({ all, on, goTo }: { all: Product[]; on: (type
           <div className="dc-list">
             {alerts.map((p) => (
               <div className="dc-row" key={p.id} onClick={() => on('view', p)}>
-                <Thumb tone={p.tone} label={p.label} size={38} />
+                <Thumb tone={p.tone} label={p.label} image={p.image} size={38} />
                 <div className="dc-row-main">
                   <b>{p.name}</b>
                   <span>{sumStock(p)} pcs left</span>
@@ -332,7 +332,7 @@ export function DashboardOverview({ all, on, goTo }: { all: Product[]; on: (type
           <div className="dc-list cols2">
             {recent.map((r, i) => (
               <div className="dc-row" key={i} onClick={() => on('view', r.p)}>
-                <Thumb tone={r.p.tone} label={r.p.label} size={38} />
+                <Thumb tone={r.p.tone} label={r.p.label} image={r.p.image} size={38} />
                 <div className="dc-row-main">
                   <b>{r.p.name}</b>
                   <span>

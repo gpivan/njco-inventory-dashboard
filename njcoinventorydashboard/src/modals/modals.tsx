@@ -1,8 +1,10 @@
 /* ============ NJ&CO — modals + details drawer ============ */
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon, type IconName } from '../icons';
 import { Thumb, Badge, SalesBadge } from '../components/shared';
 import { CATEGORIES, SIZES, TONES, overallStatus, peso, sizeStatus, salesAmount, salesProgress, sumStock, sumSold, sumStocked } from '../data';
+import { uploadImage } from '../api';
+import { imageSrc, isDriveFolderLink, resizeToJpeg } from '../images';
 import type { ActionType, Product, Size, Tone } from '../types';
 
 function Modal({
@@ -57,6 +59,7 @@ export interface ProductFormValues {
   cat: string;
   tone: Tone;
   label: string;
+  image: string;
   price: number | string;
   target: number | string;
   S: number | string;
@@ -84,6 +87,7 @@ export function AddProductModal({
           cat: editing.cat,
           tone: editing.tone,
           label: editing.label,
+          image: editing.image || '',
           price: editing.price,
           target: editing.target,
           S: editing.stock.S,
@@ -91,18 +95,48 @@ export function AddProductModal({
           L: editing.stock.L,
           XL: editing.stock.XL,
         }
-      : { name: '', desc: '', cat: 'Sleepwear', tone: 'blush', label: 'product', price: '', target: '', S: '', M: '', L: '', XL: '' },
+      : { name: '', desc: '', cat: 'Sleepwear', tone: 'blush', label: 'product', image: '', price: '', target: '', S: '', M: '', L: '', XL: '' },
   );
   const set = <K extends keyof ProductFormValues>(k: K, v: ProductFormValues[K]) => setF((p) => ({ ...p, [k]: v }));
   const total = SIZES.reduce((s, z) => s + (parseInt(String(f[z])) || 0), 0);
   const valid = f.name.trim().length > 0;
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const [uploadErr, setUploadErr] = useState('');
+  const previewSrc = imageSrc(f.image);
+  const [brokenSrc, setBrokenSrc] = useState('');
+  const showPreview = !!previewSrc && brokenSrc !== previewSrc;
+  const folderLink = isDriveFolderLink(f.image.trim());
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadErr('Please choose a PNG or JPG image.');
+      return;
+    }
+    setUploading(true);
+    setUploadErr('');
+    try {
+      const { base64 } = await resizeToJpeg(file);
+      const base = (f.name.trim() || file.name.replace(/\.[^.]+$/, '') || 'product').replace(/[^\w-]+/g, '-').toLowerCase();
+      const url = await uploadImage(base64, `${base}-${Date.now()}.jpg`);
+      set('image', url);
+    } catch (e) {
+      setUploadErr(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
 
   const footer = (
     <>
       <button className="btn btn-ghost" onClick={onClose}>
         Cancel
       </button>
-      <button className="btn btn-primary" disabled={!valid} onClick={() => valid && onSave(f)}>
+      <button className="btn btn-primary" disabled={!valid || uploading} onClick={() => valid && !uploading && onSave(f)}>
         <Icon name="check" />
         {isEdit ? 'Save Changes' : 'Save Product'}
       </button>
@@ -120,11 +154,40 @@ export function AddProductModal({
       <div className="modal-hero">
         <div className="hero-img">
           <label>Product Image</label>
-          <div className="dropzone square" style={{ background: TONES[f.tone] }}>
-            <Icon name="upload" />
-            <b>Upload</b>
-            <span>PNG / JPG</span>
+          <div
+            className={'dropzone square' + (drag ? ' drag' : '') + (showPreview ? ' has-img' : '')}
+            style={{ background: TONES[f.tone] }}
+            role="button"
+            tabIndex={0}
+            onClick={() => !uploading && fileRef.current?.click()}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !uploading && fileRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDrag(true);
+            }}
+            onDragLeave={() => setDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDrag(false);
+              if (!uploading) handleFile(e.dataTransfer.files[0]);
+            }}
+          >
+            {showPreview && <img src={previewSrc} alt="Product preview" referrerPolicy="no-referrer" onError={() => setBrokenSrc(previewSrc)} />}
+            {uploading ? (
+              <b>Uploading…</b>
+            ) : showPreview ? (
+              <span className="dz-over">
+                <b>Replace</b>
+              </span>
+            ) : (
+              <>
+                <Icon name="upload" />
+                <b>Upload</b>
+                <span>PNG / JPG</span>
+              </>
+            )}
           </div>
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={(e) => handleFile(e.target.files?.[0])} />
           <div className="tone-row">
             {(Object.keys(TONES) as Tone[]).map((t) => (
               <button
@@ -160,7 +223,17 @@ export function AddProductModal({
             <label>
               Image URL <span className="field-hint" style={{ fontWeight: 400 }}>(optional)</span>
             </label>
-            <input className="input" placeholder="…or paste an image link" />
+            <input className="input" placeholder="…or paste an image link" value={f.image} onChange={(e) => set('image', e.target.value)} />
+            {folderLink && <div className="img-err">That's a folder link. Open the image in Drive, then use Share → Copy link on the file itself.</div>}
+            {!folderLink && !!f.image.trim() && !showPreview && !uploading && (
+              <div className="img-err">Couldn't load this image. For Google Drive, set the file to "Anyone with the link".</div>
+            )}
+            {uploadErr && <div className="img-err">{uploadErr}</div>}
+            {f.image && (
+              <button type="button" className="img-clear" onClick={() => set('image', '')}>
+                Remove image
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -256,7 +329,7 @@ export function RecordSaleModal({
       </div>
       {p && (
         <div className="preview-strip">
-          <Thumb tone={p.tone} label={p.label} size={48} />
+          <Thumb tone={p.tone} label={p.label} image={p.image} size={48} />
           <div className="pi">
             <b>{p.name}</b>
             <span>
@@ -381,7 +454,7 @@ export function RestockModal({
       </div>
       {p && (
         <div className="preview-strip" style={{ padding: '14px 14px 12px', gap: 14, flexDirection: 'row', alignItems: 'center' }}>
-          <Thumb tone={p.tone} label={p.label} size={48} />
+          <Thumb tone={p.tone} label={p.label} image={p.image} size={48} />
           <div className="pi">
             <b>{p.name}</b>
             <span>
@@ -473,7 +546,7 @@ export function DetailsDrawer({ p, onClose, on }: { p: Product; onClose: () => v
         </div>
         <div className="drawer-body">
           <div className="detail-hero">
-            <Thumb tone={p.tone} label={p.label} size={130} radius={16} />
+            <Thumb tone={p.tone} label={p.label} image={p.image} size={130} radius={16} />
             <div className="meta">
               <h1>{p.name}</h1>
               <p className="d">{p.desc}</p>

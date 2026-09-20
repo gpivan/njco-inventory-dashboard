@@ -248,7 +248,7 @@ function App() {
     const target = parseFloat(String(f.target)) || 0;
     if (editing) {
       setProducts((ps) =>
-        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, cat: f.cat, tone: f.tone, price, target, stock, updated: todayStr() } : x)),
+        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, cat: f.cat, tone: f.tone, image: f.image.trim(), price, target, stock, updated: todayStr() } : x)),
       );
       flash(`Saved changes to ${f.name}`);
     } else {
@@ -260,6 +260,7 @@ function App() {
         cat: f.cat,
         tone: f.tone,
         label: (f.name || 'product').toLowerCase().slice(0, 16),
+        image: f.image.trim(),
         price,
         target,
         ts: 9999,

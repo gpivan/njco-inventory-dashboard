@@ -168,7 +168,7 @@ function MobileDashboard({ all, on }: { all: Product[]; on: (type: ActionType, p
       <div className="m-block-title">Stock Alerts</div>
       {alerts.map((p) => (
         <div className="m-mini" key={p.id} onClick={() => on('view', p)}>
-          <Thumb tone={p.tone} label={p.label} size={40} radius={10} />
+          <Thumb tone={p.tone} label={p.label} image={p.image} size={40} radius={10} />
           <div className="mm-main">
             <b>{p.name}</b>
             <span>{sumStock(p)} pcs left</span>
@@ -216,7 +216,7 @@ function MobileProducts({
         {products.map((p) => (
           <div className="m-card" key={p.id}>
             <div className="mc-top" onClick={() => on('view', p)}>
-              <Thumb tone={p.tone} label={p.label} size={64} radius={12} />
+              <Thumb tone={p.tone} label={p.label} image={p.image} size={64} radius={12} />
               <div className="mc-info">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
                   <h3>{p.name}</h3>
@@ -279,7 +279,7 @@ function MobileInventory({
         {products.map((p) => (
           <div className="m-card" key={p.id}>
             <div className="mc-top" onClick={() => on('view', p)} style={{ paddingBottom: 8 }}>
-              <Thumb tone={p.tone} label={p.label} size={48} radius={11} />
+              <Thumb tone={p.tone} label={p.label} image={p.image} size={48} radius={11} />
               <div className="mc-info">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
                   <h3>{p.name}</h3>
@@ -353,7 +353,7 @@ function MobileSales({ products, on }: { products: Product[]; on: (type: ActionT
         return (
           <div className="m-card" key={p.id}>
             <div className="mc-top" onClick={() => on('view', p)} style={{ paddingBottom: 10 }}>
-              <Thumb tone={p.tone} label={p.label} size={48} radius={11} />
+              <Thumb tone={p.tone} label={p.label} image={p.image} size={48} radius={11} />
               <div className="mc-info">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
                   <h3>{p.name}</h3>
