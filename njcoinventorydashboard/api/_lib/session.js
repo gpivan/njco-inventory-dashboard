@@ -15,8 +15,9 @@ const hmacKey = (secret) => crypto.subtle.importKey('raw', enc.encode(secret), {
 export const allowedEmails = () =>
   (process.env.ALLOWED_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 
-export async function createSession(email) {
-  const body = toB64u(enc.encode(JSON.stringify({ email, exp: Math.floor(Date.now() / 1000) + SESSION_SECONDS })));
+export async function createSession(email, profile = {}) {
+  const { name, picture } = profile;
+  const body = toB64u(enc.encode(JSON.stringify({ email, name, picture, exp: Math.floor(Date.now() / 1000) + SESSION_SECONDS })));
   const sig = await crypto.subtle.sign('HMAC', await hmacKey(process.env.AUTH_SECRET), enc.encode(body));
   return `${body}.${toB64u(sig)}`;
 }
@@ -29,9 +30,10 @@ export function readCookie(header, name) {
   return null;
 }
 
-// Resolves to the signed-in email, or null. The allowlist is re-checked on every
-// request, so removing an address from ALLOWED_EMAILS revokes its session at once.
-export async function getSessionEmail(cookieHeader) {
+// Resolves to { email, name, picture } for the signed-in user, or null. The allowlist
+// is re-checked on every request, so removing an address from ALLOWED_EMAILS revokes
+// its session at once.
+export async function getSession(cookieHeader) {
   const secret = process.env.AUTH_SECRET;
   const token = readCookie(cookieHeader, COOKIE);
   if (!secret || !token) return null;
@@ -40,12 +42,15 @@ export async function getSessionEmail(cookieHeader) {
   try {
     const ok = await crypto.subtle.verify('HMAC', await hmacKey(secret), fromB64u(sig), enc.encode(body));
     if (!ok) return null;
-    const { email, exp } = JSON.parse(dec.decode(fromB64u(body)));
+    const { email, name, picture, exp } = JSON.parse(dec.decode(fromB64u(body)));
     if (typeof email !== 'string' || !(exp > Date.now() / 1000)) return null;
-    return allowedEmails().includes(email.toLowerCase()) ? email : null;
+    if (!allowedEmails().includes(email.toLowerCase())) return null;
+    return { email, name: typeof name === 'string' ? name : null, picture: typeof picture === 'string' ? picture : null };
   } catch {
     return null;
   }
 }
 
 export const cookieAttrs = (host) => `Path=/; HttpOnly; SameSite=Lax${/^localhost(:|$)/.test(host || '') ? '' : '; Secure'}`;
+
+export const getSessionEmail = async (cookieHeader) => (await getSession(cookieHeader))?.email ?? null;

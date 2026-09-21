@@ -13,7 +13,7 @@ export default function handler(req, res) {
     client_id: clientId,
     redirect_uri: `${host.startsWith('localhost') ? 'http' : 'https'}://${host}/api/auth/callback`,
     response_type: 'code',
-    scope: 'openid email',
+    scope: 'openid email profile',
     state,
     prompt: 'select_account',
   });

@@ -37,3 +37,18 @@ export async function uploadImage(base64: string, name: string): Promise<string>
   if (!r.ok || !data.url) throw new Error(data.error || 'Upload failed');
   return data.url;
 }
+
+export interface AuthUser {
+  email: string;
+  name: string | null;
+  picture: string | null;
+}
+
+export async function fetchUser(): Promise<AuthUser | null> {
+  try {
+    const r = await fetch('/api/auth/me');
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  }
+}

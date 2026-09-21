@@ -1,5 +1,6 @@
 /* ============ NJ&CO — desktop chrome + section bodies ============ */
 import { Icon, type IconName } from '../icons';
+import { useAuthUser, displayName, initials } from '../useAuthUser';
 import { Thumb, Badge, SalesBadge, Progress, SizePills, SizeRow } from './shared';
 import { CATEGORIES, SIZES, overallStatus, peso, sumStock, sumSold, sumStocked, salesAmount, salesProgress } from '../data';
 import type { ActionType, Filters, NavId, Product } from '../types';
@@ -14,6 +15,28 @@ export const NAV_ALERTS: { id: NavId; label: string; icon: IconName; key: 'low' 
   { id: 'low', label: 'Low Stock', icon: 'lowstock', key: 'low' },
   { id: 'out', label: 'Out of Stock', icon: 'outstock', key: 'out' },
 ];
+
+function UserCard() {
+  const user = useAuthUser();
+  if (!user) return null;
+  const name = displayName(user);
+  return (
+    <div className="sb-user">
+      {user.picture ? (
+        <img className="avatar" src={user.picture} alt="" referrerPolicy="no-referrer" />
+      ) : (
+        <div className="avatar">{initials(name)}</div>
+      )}
+      <div className="who">
+        <b>{name}</b>
+        <span title={user.email}>{user.email}</span>
+      </div>
+      <a className="sb-logout" href="/api/auth/logout" title="Log out" aria-label="Log out">
+        <Icon name="logout" />
+      </a>
+    </div>
+  );
+}
 
 export function Sidebar({
   nav,
@@ -56,13 +79,7 @@ export function Sidebar({
         <Item it={{ id: 'settings', label: 'Settings', icon: 'settings' }} />
       </nav>
       <div className="sb-foot">
-        <div className="sb-user">
-          <div className="avatar">NJ</div>
-          <div className="who">
-            <b>Nadia Joy</b>
-            <span>Owner</span>
-          </div>
-        </div>
+        <UserCard />
       </div>
     </aside>
   );

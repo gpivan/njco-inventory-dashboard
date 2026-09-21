@@ -1,5 +1,7 @@
 /* ============ NJ&CO — mobile experience (section-aware) ============ */
+import { useState } from 'react';
 import { Icon, type IconName } from '../icons';
+import { useAuthUser, displayName, initials } from '../useAuthUser';
 import { Thumb, Badge, SalesBadge, Progress, MiniPills, SizeRow } from '../components/shared';
 import { overallStatus, peso, salesAmount, salesProgress, sumStock, sumSold, sumStocked, SORTS } from '../data';
 import type { ActionType, NavId, Product, Status } from '../types';
@@ -13,6 +15,46 @@ const M_TITLE: Record<NavId, string> = {
   out: 'Out of Stock',
   settings: 'Settings',
 };
+
+function AccountMenu({ onClose }: { onClose: () => void }) {
+  const user = useAuthUser();
+  const name = user ? displayName(user) : '';
+  return (
+    <div className="m-menu-wrap" onClick={onClose}>
+      <aside className="m-menu" role="dialog" aria-label="Account" onClick={(e) => e.stopPropagation()}>
+        <div className="m-menu-head">
+          <div className="sb-brand">
+            <div className="sb-mark">N</div>
+            <div className="sb-word">
+              <b>NJ&amp;CO</b>
+              <span>Boutique Admin</span>
+            </div>
+          </div>
+          <button className="m-menu-x" onClick={onClose} aria-label="Close menu">
+            <Icon name="x" />
+          </button>
+        </div>
+        {user && (
+          <div className="m-menu-user">
+            {user.picture ? (
+              <img className="avatar" src={user.picture} alt="" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="avatar">{initials(name)}</div>
+            )}
+            <div className="who">
+              <b>{name}</b>
+              <span>{user.email}</span>
+            </div>
+          </div>
+        )}
+        <a className="m-logout" href="/api/auth/logout">
+          <Icon name="logout" />
+          Log out
+        </a>
+      </aside>
+    </div>
+  );
+}
 
 export function MobileView({
   section,
@@ -43,11 +85,14 @@ export function MobileView({
       ? 'inventory'
       : 'dashboard';
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="mobile-app">
+      {menuOpen && <AccountMenu onClose={() => setMenuOpen(false)} />}
       <div className="m-top">
         <div className="row1">
-          <button className="m-burger">
+          <button className="m-burger" onClick={() => setMenuOpen(true)} aria-label="Open menu">
             <Icon name="menu" />
           </button>
           <h1>{M_TITLE[section] || 'NJ&CO'}</h1>

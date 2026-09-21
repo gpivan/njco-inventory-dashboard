@@ -54,6 +54,7 @@ export const Icons = {
   clock: mk(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
   trend: mk(<><path d="M3 17l6-6 4 4 7-7" /><path d="M17 8h4v4" /></>),
   peso: mk(<><path d="M7 4h5a4 4 0 0 1 0 8H7" /><path d="M7 4v16" /><path d="M4 9h9M4 13h9" /></>),
+  logout: mk(<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></>),
   grid: mk(<><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></>),
 };
 

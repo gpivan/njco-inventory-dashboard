@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     }
 
     res.setHeader('Set-Cookie', [
-      `${COOKIE}=${await createSession(email)}; ${cookieAttrs(host)}; Max-Age=${SESSION_SECONDS}`,
+      `${COOKIE}=${await createSession(email, { name: claims.name, picture: claims.picture })}; ${cookieAttrs(host)}; Max-Age=${SESSION_SECONDS}`,
       clear,
     ]);
     res.redirect(302, '/');
