@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       }),
     });
     const tokens = await tokenRes.json();
-    if (!tokenRes.ok || !tokens.id_token) throw new Error('token exchange failed');
+    if (!tokenRes.ok || !tokens.id_token) throw new Error(`token exchange failed: ${tokens.error} ${tokens.error_description ?? ''}`);
 
     const claims = JSON.parse(Buffer.from(tokens.id_token.split('.')[1], 'base64url').toString());
     const issuerOk = claims.iss === 'https://accounts.google.com' || claims.iss === 'accounts.google.com';
@@ -49,7 +49,8 @@ export default async function handler(req, res) {
       clear,
     ]);
     res.redirect(302, '/');
-  } catch {
+  } catch (err) {
+    console.error('auth callback failed:', err.message);
     res.setHeader('Set-Cookie', clear);
     deny(res, 502, 'Could not complete sign-in');
   }
