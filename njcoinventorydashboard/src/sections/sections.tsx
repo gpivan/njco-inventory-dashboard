@@ -2,7 +2,7 @@
 import { Icon } from '../icons';
 import { Thumb, Badge, Progress } from '../components/shared';
 import { StatCards, FilterBar, ProductsGrid, InventoryTable, SalesTable, BulkBar, type StatCardSpec } from '../components/components';
-import { overallStatus, peso, sumStock, sumSold, sumStocked, salesAmount, salesProgress, SORTS } from '../data';
+import { brandsOf, overallStatus, peso, sumStock, sumSold, sumStocked, salesAmount, salesProgress, SORTS } from '../data';
 import type { ActionType, Filters, NavId, Product } from '../types';
 
 interface SectionCommonProps {
@@ -38,7 +38,8 @@ export function ProductsSection({ products, all, on, newId, filters, setFilters 
         <FilterBar
           filters={filters}
           setFilters={setFilters}
-          controls={['search', 'cat', 'status', 'sort']}
+          controls={['search', 'brand', 'cat', 'status', 'sort']}
+          brands={brandsOf(all)}
           accent="blush"
           sortOptions={[
             { v: 'newest', t: 'Newest first' },
@@ -104,7 +105,8 @@ export function InventorySection({
         <FilterBar
           filters={filters}
           setFilters={setFilters}
-          controls={['search', 'cat', 'status', 'size', 'sort']}
+          controls={['search', 'brand', 'cat', 'status', 'size', 'sort']}
+          brands={brandsOf(all)}
           accent="beige"
           sortOptions={[
             { v: 'newest', t: 'Newest first' },
@@ -168,7 +170,8 @@ export function SalesSection({ products, all, on, newId, filters, setFilters }: 
         <FilterBar
           filters={filters}
           setFilters={setFilters}
-          controls={['search', 'cat', 'salesstatus', 'sort']}
+          controls={['search', 'brand', 'cat', 'salesstatus', 'sort']}
+          brands={brandsOf(all)}
           accent="clay"
           sortOptions={[
             { v: 'sales-high', t: 'Highest sales' },

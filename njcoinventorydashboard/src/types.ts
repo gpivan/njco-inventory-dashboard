@@ -9,6 +9,7 @@ export interface Product {
   id: string;
   name: string;
   desc: string;
+  brand: string;
   cat: string;
   tone: Tone;
   label: string;
@@ -40,6 +41,7 @@ export interface Filters {
   q: string;
   status: 'all' | Status;
   cat: string;
+  brand: string;
   size: 'all' | Size;
   salesstatus: 'all' | SalesStatus;
   sort: SortKey;

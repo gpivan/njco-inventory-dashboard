@@ -8,6 +8,12 @@ export const LOW_TOTAL_THRESHOLD = 10; // overall on-hand <= 10 = Low
 export const SIZES: Size[] = ['S', 'M', 'L', 'XL'];
 export const CATEGORIES = ['Sleepwear', 'Shorts', 'Undies', 'Accessories'];
 
+// Every product predates the brand field, so anything saved without one is Bobbie Brooks.
+export const DEFAULT_BRAND = 'Bobbie Brooks';
+
+export const brandsOf = (products: Product[]): string[] =>
+  [...new Set(products.map((p) => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
 export function sizeStatus(onHand: number): Status {
   if (onHand <= 0) return 'out';
   if (onHand <= LOW_THRESHOLD) return 'low';
@@ -77,28 +83,28 @@ export const TONES: Record<Tone, string> = {
 
 export const PRODUCTS: Product[] = [
   { id: 'p1', name: 'Pink Pajama Set', desc: 'Soft cotton pajama set with relaxed fit',
-    cat: 'Sleepwear', tone: 'blush', label: 'pajama set', price: 299, target: 10000, ts: 502, added: 'May 2, 2026', updated: 'Jun 14, 2026',
+    brand: DEFAULT_BRAND, cat: 'Sleepwear', tone: 'blush', label: 'pajama set', price: 299, target: 10000, ts: 502, added: 'May 2, 2026', updated: 'Jun 14, 2026',
     stock: { S: 8, M: 2, L: 2, XL: 1 }, sold: { S: 4, M: 6, L: 3, XL: 1 } },
   { id: 'p2', name: 'Blue Floral Sleepwear', desc: 'Lightweight floral lounge set for warm nights',
-    cat: 'Sleepwear', tone: 'sage', label: 'floral set', price: 349, target: 12000, ts: 418, added: 'Apr 18, 2026', updated: 'Jun 17, 2026',
+    brand: DEFAULT_BRAND, cat: 'Sleepwear', tone: 'sage', label: 'floral set', price: 349, target: 12000, ts: 418, added: 'Apr 18, 2026', updated: 'Jun 17, 2026',
     stock: { S: 2, M: 1, L: 0, XL: 0 }, sold: { S: 8, M: 7, L: 5, XL: 4 } },
   { id: 'p3', name: 'Cotton Lounge Shorts', desc: 'Comfortable everyday lounge shorts, mid-rise',
-    cat: 'Shorts', tone: 'sand', label: 'lounge shorts', price: 199, target: 8000, ts: 330, added: 'Mar 30, 2026', updated: 'Jun 10, 2026',
+    brand: DEFAULT_BRAND, cat: 'Shorts', tone: 'sand', label: 'lounge shorts', price: 199, target: 8000, ts: 330, added: 'Mar 30, 2026', updated: 'Jun 10, 2026',
     stock: { S: 0, M: 0, L: 0, XL: 0 }, sold: { S: 10, M: 12, L: 8, XL: 6 } },
   { id: 'p4', name: 'Nude Seamless Undies', desc: 'Soft seamless everyday underwear, tagless',
-    cat: 'Undies', tone: 'clay', label: 'seamless undies', price: 99, target: 5000, ts: 521, added: 'May 21, 2026', updated: 'Jun 18, 2026',
+    brand: DEFAULT_BRAND, cat: 'Undies', tone: 'clay', label: 'seamless undies', price: 99, target: 5000, ts: 521, added: 'May 21, 2026', updated: 'Jun 18, 2026',
     stock: { S: 20, M: 18, L: 10, XL: 7 }, sold: { S: 5, M: 9, L: 4, XL: 2 } },
   { id: 'p5', name: 'Satin Slip Robe', desc: 'Lustrous satin robe with tie waist and lace trim',
-    cat: 'Sleepwear', tone: 'mauve', label: 'satin robe', price: 499, target: 15000, ts: 211, added: 'Feb 11, 2026', updated: 'Jun 9, 2026',
+    brand: DEFAULT_BRAND, cat: 'Sleepwear', tone: 'mauve', label: 'satin robe', price: 499, target: 15000, ts: 211, added: 'Feb 11, 2026', updated: 'Jun 9, 2026',
     stock: { S: 6, M: 9, L: 7, XL: 4 }, sold: { S: 7, M: 5, L: 6, XL: 3 } },
   { id: 'p6', name: 'Ribbed Lounge Tee', desc: 'Stretch ribbed tee, easy boxy silhouette',
-    cat: 'Sleepwear', tone: 'beige', label: 'lounge tee', price: 249, target: 9000, ts: 402, added: 'Apr 2, 2026', updated: 'Jun 15, 2026',
+    brand: DEFAULT_BRAND, cat: 'Sleepwear', tone: 'beige', label: 'lounge tee', price: 249, target: 9000, ts: 402, added: 'Apr 2, 2026', updated: 'Jun 15, 2026',
     stock: { S: 3, M: 2, L: 1, XL: 5 }, sold: { S: 9, M: 11, L: 6, XL: 2 } },
   { id: 'p7', name: 'Silk Scrunchie Trio', desc: 'Set of three mulberry silk hair scrunchies',
-    cat: 'Accessories', tone: 'rose', label: 'scrunchie set', price: 149, target: 6000, ts: 128, added: 'Jan 28, 2026', updated: 'Jun 12, 2026',
+    brand: DEFAULT_BRAND, cat: 'Accessories', tone: 'rose', label: 'scrunchie set', price: 149, target: 6000, ts: 128, added: 'Jan 28, 2026', updated: 'Jun 12, 2026',
     stock: { S: 30, M: 30, L: 30, XL: 30 }, sold: { S: 14, M: 0, L: 0, XL: 0 } },
   { id: 'p8', name: 'Linen Sleep Shorts', desc: 'Breathable linen-blend shorts with drawstring',
-    cat: 'Shorts', tone: 'cream', label: 'sleep shorts', price: 229, target: 7000, ts: 508, added: 'May 8, 2026', updated: 'Jun 16, 2026',
+    brand: DEFAULT_BRAND, cat: 'Shorts', tone: 'cream', label: 'sleep shorts', price: 229, target: 7000, ts: 508, added: 'May 8, 2026', updated: 'Jun 16, 2026',
     stock: { S: 5, M: 0, L: 2, XL: 0 }, sold: { S: 6, M: 8, L: 4, XL: 3 } },
 ];
 

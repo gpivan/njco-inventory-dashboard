@@ -1,4 +1,5 @@
 /* ============ NJ&CO — persistence client (talks to /api/products) ============ */
+import { DEFAULT_BRAND } from './data';
 import type { Product } from './types';
 
 export async function fetchProducts(): Promise<Product[] | null> {
@@ -6,7 +7,7 @@ export async function fetchProducts(): Promise<Product[] | null> {
     const r = await fetch('/api/products');
     if (!r.ok) return null;
     const data = await r.json();
-    return Array.isArray(data.products) ? data.products : null;
+    return Array.isArray(data.products) ? data.products.map((p: Product) => ({ ...p, brand: p.brand?.trim() || DEFAULT_BRAND })) : null;
   } catch {
     return null;
   }

@@ -66,6 +66,9 @@ export function MobileView({
   setQuery,
   statusFilter,
   setStatusFilter,
+  brands,
+  brandFilter,
+  setBrandFilter,
   onAdd,
 }: {
   section: NavId;
@@ -77,6 +80,9 @@ export function MobileView({
   setQuery: (v: string) => void;
   statusFilter: 'all' | Status;
   setStatusFilter: (v: 'all' | Status) => void;
+  brands: string[];
+  brandFilter: string;
+  setBrandFilter: (v: string) => void;
   onAdd: () => void;
 }) {
   const sec: 'dashboard' | 'products' | 'inventory' | 'sales' = ['dashboard', 'products', 'inventory', 'sales'].includes(section)
@@ -109,8 +115,8 @@ export function MobileView({
       </div>
 
       {sec === 'dashboard' && <MobileDashboard all={all} on={on} />}
-      {sec === 'products' && <MobileProducts products={products} on={on} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />}
-      {sec === 'inventory' && <MobileInventory products={products} on={on} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />}
+      {sec === 'products' && <MobileProducts products={products} on={on} statusFilter={statusFilter} setStatusFilter={setStatusFilter} brands={brands} brandFilter={brandFilter} setBrandFilter={setBrandFilter} />}
+      {sec === 'inventory' && <MobileInventory products={products} on={on} statusFilter={statusFilter} setStatusFilter={setStatusFilter} brands={brands} brandFilter={brandFilter} setBrandFilter={setBrandFilter} />}
       {sec === 'sales' && <MobileSales products={products} on={on} />}
 
       <div className="m-tabbar">
@@ -154,6 +160,19 @@ function StatStrip({ stats }: { stats: { tone: string; icon: IconName; num: numb
           <div className="num">{s.num}</div>
           <div className="lbl">{s.lbl}</div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function BrandChips({ brands, brandFilter, setBrandFilter }: { brands: string[]; brandFilter: string; setBrandFilter: (v: string) => void }) {
+  if (brands.length < 2) return null;
+  return (
+    <div className="m-filter-chips">
+      {['all', ...brands].map((b) => (
+        <button key={b} className={'m-chip' + (brandFilter === b ? ' on' : '')} onClick={() => setBrandFilter(b)}>
+          {b === 'all' ? 'All brands' : b}
+        </button>
       ))}
     </div>
   );
@@ -243,14 +262,21 @@ function MobileProducts({
   on,
   statusFilter,
   setStatusFilter,
+  brands,
+  brandFilter,
+  setBrandFilter,
 }: {
   products: Product[];
   on: (type: ActionType, p: Product) => void;
   statusFilter: 'all' | Status;
   setStatusFilter: (v: 'all' | Status) => void;
+  brands: string[];
+  brandFilter: string;
+  setBrandFilter: (v: string) => void;
 }) {
   return (
     <>
+      <BrandChips brands={brands} brandFilter={brandFilter} setBrandFilter={setBrandFilter} />
       <StatusChips statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
       <div className="m-list">
         {products.length === 0 && (
@@ -268,7 +294,7 @@ function MobileProducts({
                   <Badge status={overallStatus(p)} />
                 </div>
                 <div className="mc-cat">
-                  {p.cat} · <b style={{ color: 'var(--terracotta-dark)' }}>{peso(p.price)}</b>
+                  {p.brand} · {p.cat} · <b style={{ color: 'var(--terracotta-dark)' }}>{peso(p.price)}</b>
                 </div>
                 <div className="mc-stockline">
                   <b>{sumStock(p)}</b>
@@ -306,14 +332,21 @@ function MobileInventory({
   on,
   statusFilter,
   setStatusFilter,
+  brands,
+  brandFilter,
+  setBrandFilter,
 }: {
   products: Product[];
   on: (type: ActionType, p: Product) => void;
   statusFilter: 'all' | Status;
   setStatusFilter: (v: 'all' | Status) => void;
+  brands: string[];
+  brandFilter: string;
+  setBrandFilter: (v: string) => void;
 }) {
   return (
     <>
+      <BrandChips brands={brands} brandFilter={brandFilter} setBrandFilter={setBrandFilter} />
       <StatusChips statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
       <div className="m-list">
         {products.length === 0 && (
@@ -330,7 +363,7 @@ function MobileInventory({
                   <h3>{p.name}</h3>
                   <Badge status={overallStatus(p)} />
                 </div>
-                <div className="mc-cat">{p.cat}</div>
+                <div className="mc-cat">{p.brand} · {p.cat}</div>
               </div>
             </div>
             <div className="m-invrows">
@@ -405,7 +438,7 @@ function MobileSales({ products, on }: { products: Product[]; on: (type: ActionT
                   <SalesBadge p={p} />
                 </div>
                 <div className="mc-cat">
-                  {p.cat} · {peso(p.price)} · {sumSold(p)} sold
+                  {p.brand} · {p.cat} · {peso(p.price)} · {sumSold(p)} sold
                 </div>
               </div>
             </div>

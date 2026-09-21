@@ -288,6 +288,7 @@ table.inv{width:100%;border-collapse:collapse;font-size:var(--cell-font)}
 .pcard .ph{height:150px;position:relative}
 .pcard .ph .badge{position:absolute;top:11px;right:11px;box-shadow:var(--sh-sm)}
 .pcard .pb{padding:15px 15px 16px;gap:10px;display:flex;flex-direction:column}
+.pcard .brand-tag{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--terracotta-dark);margin-bottom:3px}
 .pcard .pb-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .pcard .pb-head h3{font-size:16px;font-weight:600;margin:0;line-height:1.2}
 .pcard .price{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--terracotta-dark);white-space:nowrap}

@@ -56,6 +56,7 @@ function Modal({
 export interface ProductFormValues {
   name: string;
   desc: string;
+  brand: string;
   cat: string;
   tone: Tone;
   label: string;
@@ -73,10 +74,14 @@ export function AddProductModal({
   onClose,
   onSave,
   editing,
+  brands,
+  defaultBrand,
 }: {
   onClose: () => void;
   onSave: (f: ProductFormValues) => void;
   editing: Product | null;
+  brands: string[];
+  defaultBrand: string;
 }) {
   const isEdit = !!editing;
   const [f, setF] = useState<ProductFormValues>(() =>
@@ -84,6 +89,7 @@ export function AddProductModal({
       ? {
           name: editing.name,
           desc: editing.desc,
+          brand: editing.brand,
           cat: editing.cat,
           tone: editing.tone,
           label: editing.label,
@@ -95,11 +101,12 @@ export function AddProductModal({
           L: editing.stock.L,
           XL: editing.stock.XL,
         }
-      : { name: '', desc: '', cat: 'Sleepwear', tone: 'blush', label: 'product', image: '', price: '', target: '', S: '', M: '', L: '', XL: '' },
+      : { name: '', desc: '', brand: defaultBrand, cat: 'Sleepwear', tone: 'blush', label: 'product', image: '', price: '', target: '', S: '', M: '', L: '', XL: '' },
   );
   const set = <K extends keyof ProductFormValues>(k: K, v: ProductFormValues[K]) => setF((p) => ({ ...p, [k]: v }));
   const total = SIZES.reduce((s, z) => s + (parseInt(String(f[z])) || 0), 0);
-  const valid = f.name.trim().length > 0;
+  const [addingBrand, setAddingBrand] = useState(false);
+  const valid = f.name.trim().length > 0 && f.brand.trim().length > 0;
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -207,6 +214,34 @@ export function AddProductModal({
               Product Name <span className="req">*</span>
             </label>
             <input className="input" placeholder="e.g. Pink Pajama Set" value={f.name} onChange={(e) => set('name', e.target.value)} autoFocus />
+          </div>
+          <div className="field">
+            <label>
+              Brand <span className="req">*</span>
+            </label>
+            <div className="selectwrap">
+              <select
+                className="sel"
+                style={{ width: '100%' }}
+                value={addingBrand ? '__new__' : f.brand}
+                onChange={(e) => {
+                  const isNew = e.target.value === '__new__';
+                  setAddingBrand(isNew);
+                  set('brand', isNew ? '' : e.target.value);
+                }}
+              >
+                {brands.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+                <option value="__new__">+ Add new brand…</option>
+              </select>
+              <Icon name="chevdown" className="chev" />
+            </div>
+            {addingBrand && (
+              <input className="input" style={{ marginTop: 8 }} placeholder="e.g. Laura Ashley" maxLength={80} value={f.brand} onChange={(e) => set('brand', e.target.value)} autoFocus />
+            )}
           </div>
           <div className="field">
             <label>Category</label>
@@ -333,7 +368,7 @@ export function RecordSaleModal({
           <div className="pi">
             <b>{p.name}</b>
             <span>
-              {p.cat} · {peso(p.price)} · {sumStock(p)} on hand
+              {p.brand} · {p.cat} · {peso(p.price)} · {sumStock(p)} on hand
             </span>
           </div>
           <div style={{ marginLeft: 'auto' }}>
@@ -458,7 +493,7 @@ export function RestockModal({
           <div className="pi">
             <b>{p.name}</b>
             <span>
-              {p.cat} · {peso(p.price)} · {sumStock(p)} on hand
+              {p.brand} · {p.cat} · {peso(p.price)} · {sumStock(p)} on hand
             </span>
           </div>
           <div style={{ marginLeft: 'auto' }}>
@@ -551,6 +586,7 @@ export function DetailsDrawer({ p, onClose, on }: { p: Product; onClose: () => v
               <h1>{p.name}</h1>
               <p className="d">{p.desc}</p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className="cat-chip">{p.brand}</span>
                 <span className="cat-chip">{p.cat}</span>
                 <Badge status={st} />
                 <span className="price-chip">{peso(p.price)}</span>

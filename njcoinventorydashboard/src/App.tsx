@@ -7,7 +7,7 @@ import { AddProductModal, RecordSaleModal, RestockModal, DetailsDrawer, type Pro
 import { MobileView } from './mobile/mobile';
 import { useIsMobile } from './useIsMobile';
 import { fetchProducts, saveProducts } from './api';
-import { PRODUCTS, SIZES, SORTS, nowStamp, overallStatus, salesStatus, todayStr } from './data';
+import { DEFAULT_BRAND, PRODUCTS, SIZES, SORTS, brandsOf, nowStamp, overallStatus, salesStatus, todayStr } from './data';
 import type { ActionType, Filters, NavId, Product } from './types';
 
 const SECTION_META: Record<NavId, { title: string; sub: string }> = {
@@ -36,7 +36,7 @@ function App() {
   const [saveError, setSaveError] = useState(false);
   const [nav, setNav] = useState<NavId>('dashboard');
   const [collapsed, setCollapsed] = useState(false);
-  const [filters, setFilters] = useState<Filters>({ q: '', status: 'all', cat: 'all', size: 'all', salesstatus: 'all', sort: 'newest' });
+  const [filters, setFilters] = useState<Filters>({ q: '', status: 'all', cat: 'all', brand: 'all', size: 'all', salesstatus: 'all', sort: 'newest' });
   const [modal, setModal] = useState<ModalState>(null);
   const [detail, setDetail] = useState<Product | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -150,13 +150,16 @@ function App() {
     [products],
   );
 
+  const brands = useMemo(() => brandsOf(products), [products]);
+
   // filtered + sorted for the active section
   const visible = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
     let list = products.filter((p) => {
-      if (q && !(p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q))) return false;
+      if (q && !(p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q))) return false;
       if (filters.status !== 'all' && overallStatus(p) !== filters.status) return false;
       if (filters.cat !== 'all' && p.cat !== filters.cat) return false;
+      if (filters.brand !== 'all' && p.brand !== filters.brand) return false;
       if (filters.size !== 'all' && p.stock[filters.size] <= 0) return false;
       if (filters.salesstatus !== 'all' && salesStatus(p) !== filters.salesstatus) return false;
       return true;
@@ -244,11 +247,13 @@ function App() {
       L: parseInt(String(f.L)) || 0,
       XL: parseInt(String(f.XL)) || 0,
     };
+    // a typed brand that differs from an existing one only by case reuses the existing spelling
+    const brand = brands.find((b) => b.toLowerCase() === f.brand.trim().toLowerCase()) ?? f.brand.trim();
     const price = parseFloat(String(f.price)) || 0;
     const target = parseFloat(String(f.target)) || 0;
     if (editing) {
       setProducts((ps) =>
-        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, cat: f.cat, tone: f.tone, image: f.image.trim(), price, target, stock, updated: nowStamp() } : x)),
+        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, brand, cat: f.cat, tone: f.tone, image: f.image.trim(), price, target, stock, updated: nowStamp() } : x)),
       );
       flash(`Saved changes to ${f.name}`);
     } else {
@@ -257,6 +262,7 @@ function App() {
         id,
         name: f.name,
         desc: f.desc || '—',
+        brand,
         cat: f.cat,
         tone: f.tone,
         label: (f.name || 'product').toLowerCase().slice(0, 16),
@@ -362,6 +368,9 @@ function App() {
           setQuery={(v) => setFilters((f) => ({ ...f, q: v }))}
           statusFilter={filters.status}
           setStatusFilter={(v) => setFilters((f) => ({ ...f, status: v }))}
+          brands={brands}
+          brandFilter={filters.brand}
+          setBrandFilter={(v) => setFilters((f) => ({ ...f, brand: v }))}
           onAdd={() => setModal({ type: 'add' })}
         />
       ) : (
@@ -381,7 +390,7 @@ function App() {
         </div>
       )}
 
-      {modal?.type === 'add' && <AddProductModal onClose={closeModal} onSave={saveProduct} editing={editing} />}
+      {modal?.type === 'add' && <AddProductModal onClose={closeModal} onSave={saveProduct} editing={editing} brands={brands} defaultBrand={filters.brand !== 'all' ? filters.brand : brands[0] ?? DEFAULT_BRAND} />}
       {modal?.type === 'sale' && <RecordSaleModal products={products} preselect={modal.product} onClose={closeModal} onSubmit={recordSale} />}
       {modal?.type === 'restock' && <RestockModal products={products} preselect={modal.product} onClose={closeModal} onSubmit={restock} />}
       {liveDetail && <DetailsDrawer p={liveDetail} onClose={() => setDetail(null)} on={on} />}

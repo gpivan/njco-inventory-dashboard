@@ -6,7 +6,7 @@ import { getSessionEmail } from './_lib/session.js';
 
 const MAX_PRODUCTS = 2000;
 const isSizeMap = (m) => m && typeof m === 'object' && ['S', 'M', 'L', 'XL'].every((k) => Number.isFinite(Number(m[k])));
-const isProduct = (p) => p && typeof p === 'object' && typeof p.id === 'string' && typeof p.name === 'string' && isSizeMap(p.stock) && isSizeMap(p.sold);
+const isProduct = (p) => p && typeof p === 'object' && typeof p.id === 'string' && typeof p.name === 'string' && (p.brand === undefined || (typeof p.brand === 'string' && p.brand.length <= 80)) && isSizeMap(p.stock) && isSizeMap(p.sold);
 
 export default async function handler(req, res) {
   if (!(await getSessionEmail(req.headers.cookie))) {

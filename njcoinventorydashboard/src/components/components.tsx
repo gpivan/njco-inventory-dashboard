@@ -153,7 +153,7 @@ export function StatCards({ cards, cols }: { cards: StatCardSpec[]; cols?: numbe
 }
 
 /* ---- configurable filter bar ---- */
-type FilterControl = 'search' | 'status' | 'salesstatus' | 'cat' | 'size' | 'sort';
+type FilterControl = 'search' | 'status' | 'salesstatus' | 'brand' | 'cat' | 'size' | 'sort';
 
 export function FilterBar({
   filters,
@@ -161,12 +161,14 @@ export function FilterBar({
   controls,
   sortOptions,
   accent,
+  brands = [],
 }: {
   filters: Filters;
   setFilters: (updater: (f: Filters) => Filters) => void;
   controls: FilterControl[];
   sortOptions?: { v: string; t: string }[];
   accent?: string;
+  brands?: string[];
 }) {
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setFilters((f) => ({ ...f, [k]: v }));
   const Sel = ({ k, options, w }: { k: keyof Filters; options: { v: string; t: string }[]; w?: number }) => (
@@ -187,7 +189,7 @@ export function FilterBar({
         <div className="search-field">
           <Icon name="search" />
           <input
-            placeholder="Search product name, category, or description…"
+            placeholder="Search product name, brand, category, or description…"
             value={filters.q}
             onChange={(e) => set('q', e.target.value)}
           />
@@ -219,6 +221,9 @@ export function FilterBar({
           ]}
           w={158}
         />
+      )}
+      {controls.includes('brand') && (
+        <Sel k="brand" options={[{ v: 'all', t: 'All Brands' }, ...brands.map((b) => ({ v: b, t: b }))]} />
       )}
       {controls.includes('cat') && (
         <Sel k="cat" options={[{ v: 'all', t: 'All Categories' }, ...CATEGORIES.map((c) => ({ v: c, t: c }))]} />
@@ -298,6 +303,7 @@ export function ProductCard({ p, on, newId }: { p: Product; on: (type: ActionTyp
         <span className="ph-cat">{p.cat}</span>
       </div>
       <div className="pb">
+        <div className="brand-tag">{p.brand}</div>
         <div className="pb-head">
           <h3>{p.name}</h3>
           <span className="price">{peso(p.price)}</span>
@@ -442,7 +448,7 @@ export function InventoryTable({
                     <Thumb tone={p.tone} label={p.label} image={p.image} size={44} />
                     <div className="prodname">
                       <b>{p.name}</b>
-                      <span>{peso(p.price)}</span>
+                      <span>{p.brand} · {peso(p.price)}</span>
                     </div>
                   </div>
                 </td>
