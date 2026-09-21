@@ -102,6 +102,22 @@ export const PRODUCTS: Product[] = [
     stock: { S: 5, M: 0, L: 2, XL: 0 }, sold: { S: 6, M: 8, L: 4, XL: 3 } },
 ];
 
+// full timestamp for `updated` (ISO, so it survives the Sheets round-trip and sorts)
+export const nowStamp = () => new Date().toISOString();
+
+// "2026-09-21T15:25:00.000Z" -> "September 21, 2026 11:25 PM" (viewer's local time).
+// Date-only values ("Jun 14, 2026", or the midnight timestamps Sheets makes from them)
+// show just the date, since their time isn't real. Unparseable text is shown as-is.
+export function formatStamp(raw: string | undefined): string {
+  const s = (raw ?? '').trim();
+  const d = new Date(s);
+  if (!s || isNaN(d.getTime())) return s;
+  const isIso = /^\d{4}-\d{2}-\d{2}T/.test(s);
+  const dateOnly = !isIso || (d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0 && d.getUTCMilliseconds() === 0);
+  const date = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return dateOnly ? date : `${date} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+}
+
 export function todayStr(): string {
   return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }

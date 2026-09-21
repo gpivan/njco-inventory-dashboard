@@ -2,7 +2,7 @@
 import { Icon, type IconName } from '../icons';
 import { useAuthUser, displayName, initials } from '../useAuthUser';
 import { Thumb, Badge, SalesBadge, Progress, SizePills, SizeRow } from './shared';
-import { CATEGORIES, SIZES, overallStatus, peso, sumStock, sumSold, sumStocked, salesAmount, salesProgress } from '../data';
+import { CATEGORIES, formatStamp, SIZES, overallStatus, peso, sumStock, sumSold, sumStocked, salesAmount, salesProgress } from '../data';
 import type { ActionType, Filters, NavId, Product } from '../types';
 
 export const NAV_MAIN: { id: NavId; label: string; icon: IconName }[] = [
@@ -473,7 +473,7 @@ export function InventoryTable({
                 <td>
                   <span className="upd">
                     <Icon name="clock" />
-                    {p.updated}
+                    {formatStamp(p.updated)}
                   </span>
                 </td>
                 <td className="tact" onClick={(e) => e.stopPropagation()}>

@@ -1,22 +1,48 @@
 /* ============ NJ&CO — shared UI primitives ============ */
 import { useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { imageSrc } from '../images';
 import { SIZES, STATUS_LABEL, TONES, sizeStatus, salesStatus, SALES_LABEL, SALES_BADGE_CLS } from '../data';
 import type { Product, Size, Status } from '../types';
 
-export function Thumb({ tone, label, image, size = 46, radius }: { tone: Product['tone']; label: string; image?: string; size?: number | string; radius?: number }) {
+const PREVIEW = 320;
+const PREVIEW_GAP = 14;
+
+// A large hover preview of the product shot, rendered in a portal so table cells and
+// rounded thumbs can't clip it. Prefers the right of the thumb, flips left if it won't fit.
+function ThumbPreview({ rect, src, alt }: { rect: DOMRect; src: string; alt: string }) {
+  const fitsRight = rect.right + PREVIEW_GAP + PREVIEW <= window.innerWidth - 8;
+  const left = fitsRight ? rect.right + PREVIEW_GAP : Math.max(8, rect.left - PREVIEW_GAP - PREVIEW);
+  const top = Math.min(Math.max(8, rect.top + rect.height / 2 - PREVIEW / 2), window.innerHeight - PREVIEW - 8);
+  return createPortal(
+    <div className="thumb-preview" style={{ left, top, width: PREVIEW, height: PREVIEW }}>
+      <img src={src.replace(/sz=w\d+/, 'sz=w1000')} alt={alt} referrerPolicy="no-referrer" />
+    </div>,
+    document.body,
+  );
+}
+
+export function Thumb({ tone, label, image, size = 46, radius, preview = true }: { tone: Product['tone']; label: string; image?: string; size?: number | string; radius?: number; preview?: boolean }) {
   const bg = TONES[tone] || TONES.beige;
   const src = imageSrc(image);
   // remember which src failed so a changed link gets a fresh attempt
   const [failed, setFailed] = useState('');
+  const [rect, setRect] = useState<DOMRect | null>(null);
   const showImg = !!src && failed !== src;
+  const canPreview = preview && showImg;
   return (
-    <div className={'thumb' + (showImg ? ' has-img' : '')} style={{ width: size, height: size, background: bg, borderRadius: radius }}>
+    <div
+      className={'thumb' + (showImg ? ' has-img' : '')}
+      style={{ width: size, height: size, background: bg, borderRadius: radius }}
+      onMouseEnter={canPreview ? (e) => setRect(e.currentTarget.getBoundingClientRect()) : undefined}
+      onMouseLeave={canPreview ? () => setRect(null) : undefined}
+    >
       {showImg ? (
         <img src={src} alt={label} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(src)} />
       ) : (
         <span className="lab">{label}</span>
       )}
+      {canPreview && rect && <ThumbPreview rect={rect} src={src} alt={label} />}
     </div>
   );
 }

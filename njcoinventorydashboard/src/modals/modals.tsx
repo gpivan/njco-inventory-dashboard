@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon, type IconName } from '../icons';
 import { Thumb, Badge, SalesBadge } from '../components/shared';
-import { CATEGORIES, SIZES, TONES, overallStatus, peso, sizeStatus, salesAmount, salesProgress, sumStock, sumSold, sumStocked } from '../data';
+import { CATEGORIES, formatStamp, SIZES, TONES, overallStatus, peso, sizeStatus, salesAmount, salesProgress, sumStock, sumSold, sumStocked } from '../data';
 import { uploadImage } from '../api';
 import { imageSrc, isDriveFolderLink, resizeToJpeg } from '../images';
 import type { ActionType, Product, Size, Tone } from '../types';
@@ -546,7 +546,7 @@ export function DetailsDrawer({ p, onClose, on }: { p: Product; onClose: () => v
         </div>
         <div className="drawer-body">
           <div className="detail-hero">
-            <Thumb tone={p.tone} label={p.label} image={p.image} size={130} radius={16} />
+            <Thumb tone={p.tone} label={p.label} image={p.image} size={130} radius={16} preview={false} />
             <div className="meta">
               <h1>{p.name}</h1>
               <p className="d">{p.desc}</p>
@@ -569,11 +569,11 @@ export function DetailsDrawer({ p, onClose, on }: { p: Product; onClose: () => v
             </div>
             <div className="kv">
               <div className="k">Date Added</div>
-              <div className="v">{p.added}</div>
+              <div className="v">{formatStamp(p.added)}</div>
             </div>
             <div className="kv">
               <div className="k">Last Updated</div>
-              <div className="v">{p.updated}</div>
+              <div className="v">{formatStamp(p.updated)}</div>
             </div>
           </div>
 

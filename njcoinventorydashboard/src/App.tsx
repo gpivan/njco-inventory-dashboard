@@ -7,7 +7,7 @@ import { AddProductModal, RecordSaleModal, RestockModal, DetailsDrawer, type Pro
 import { MobileView } from './mobile/mobile';
 import { useIsMobile } from './useIsMobile';
 import { fetchProducts, saveProducts } from './api';
-import { PRODUCTS, SIZES, SORTS, overallStatus, salesStatus, todayStr } from './data';
+import { PRODUCTS, SIZES, SORTS, nowStamp, overallStatus, salesStatus, todayStr } from './data';
 import type { ActionType, Filters, NavId, Product } from './types';
 
 const SECTION_META: Record<NavId, { title: string; sub: string }> = {
@@ -197,7 +197,7 @@ function App() {
     if (n === 0) return;
     const set = new Set(ids);
     setProducts((ps) =>
-      ps.map((p) => (set.has(p.id) ? { ...p, stock: Object.fromEntries(SIZES.map((z) => [z, p.stock[z] + 10])) as Product['stock'], updated: todayStr() } : p)),
+      ps.map((p) => (set.has(p.id) ? { ...p, stock: Object.fromEntries(SIZES.map((z) => [z, p.stock[z] + 10])) as Product['stock'], updated: nowStamp() } : p)),
     );
     flash(`Restocked ${n} product${n > 1 ? 's' : ''} · +10 per size`);
     clearSel();
@@ -248,7 +248,7 @@ function App() {
     const target = parseFloat(String(f.target)) || 0;
     if (editing) {
       setProducts((ps) =>
-        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, cat: f.cat, tone: f.tone, image: f.image.trim(), price, target, stock, updated: todayStr() } : x)),
+        ps.map((x) => (x.id === editing.id ? { ...x, name: f.name, desc: f.desc, cat: f.cat, tone: f.tone, image: f.image.trim(), price, target, stock, updated: nowStamp() } : x)),
       );
       flash(`Saved changes to ${f.name}`);
     } else {
@@ -265,7 +265,7 @@ function App() {
         target,
         ts: 9999,
         added: todayStr(),
-        updated: todayStr(),
+        updated: nowStamp(),
         stock,
         sold: { S: 0, M: 0, L: 0, XL: 0 },
       };
@@ -279,7 +279,7 @@ function App() {
 
   const recordSale = (pid: string, size: (typeof SIZES)[number], qty: number) => {
     setProducts((ps) =>
-      ps.map((p) => (p.id === pid ? { ...p, stock: { ...p.stock, [size]: p.stock[size] - qty }, sold: { ...p.sold, [size]: p.sold[size] + qty }, updated: todayStr() } : p)),
+      ps.map((p) => (p.id === pid ? { ...p, stock: { ...p.stock, [size]: p.stock[size] - qty }, sold: { ...p.sold, [size]: p.sold[size] + qty }, updated: nowStamp() } : p)),
     );
     setDetail((d) => (d && d.id === pid ? { ...d, stock: { ...d.stock, [size]: d.stock[size] - qty }, sold: { ...d.sold, [size]: d.sold[size] + qty } } : d));
     flash(`Recorded sale · ${qty}× size ${size}`);
@@ -287,7 +287,7 @@ function App() {
   };
 
   const restock = (pid: string, size: (typeof SIZES)[number], qty: number) => {
-    setProducts((ps) => ps.map((p) => (p.id === pid ? { ...p, stock: { ...p.stock, [size]: p.stock[size] + qty }, updated: todayStr() } : p)));
+    setProducts((ps) => ps.map((p) => (p.id === pid ? { ...p, stock: { ...p.stock, [size]: p.stock[size] + qty }, updated: nowStamp() } : p)));
     setDetail((d) => (d && d.id === pid ? { ...d, stock: { ...d.stock, [size]: d.stock[size] + qty } } : d));
     flash(`Restocked ${qty}× size ${size}`);
     closeModal();
