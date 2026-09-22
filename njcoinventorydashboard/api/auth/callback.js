@@ -3,9 +3,10 @@
 // the ALLOWED_EMAILS list, then issue the signed session cookie.
 import { COOKIE, STATE_COOKIE, SESSION_SECONDS, allowedEmails, cookieAttrs, createSession, readCookie } from '../_lib/session.js';
 
-const deny = (res, status, msg) => {
-  res.status(status).setHeader('Content-Type', 'text/html; charset=utf-8')
-    .send(`<!doctype html><meta charset="utf-8"><title>Access denied</title><body style="font-family:system-ui;max-width:28rem;margin:4rem auto;padding:0 1rem"><h1>${msg}</h1><p><a href="/api/auth/login">Try another Google account</a></p></body>`);
+// Sends the browser back to the login page with a reason flag, instead of rendering
+// its own error page, so a denied sign-in lands back on the branded login screen.
+const deny = (res, reason) => {
+  res.redirect(302, `/login.html?${reason}=1`);
 };
 
 export default async function handler(req, res) {
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
 
   if (typeof code !== 'string' || !state || state !== expected) {
     res.setHeader('Set-Cookie', clear);
-    deny(res, 400, 'Sign-in failed');
+    deny(res, 'error');
     return;
   }
 
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
     const email = String(claims.email || '').toLowerCase();
     if (!issuerOk || claims.aud !== process.env.GOOGLE_CLIENT_ID || claims.email_verified !== true || !allowedEmails().includes(email)) {
       res.setHeader('Set-Cookie', clear);
-      deny(res, 403, 'This Google account is not allowed to access this app');
+      deny(res, 'denied');
       return;
     }
 
@@ -52,6 +53,6 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('auth callback failed:', err.message);
     res.setHeader('Set-Cookie', clear);
-    deny(res, 502, 'Could not complete sign-in');
+    deny(res, 'error');
   }
 }
