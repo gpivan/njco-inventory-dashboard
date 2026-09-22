@@ -5,11 +5,20 @@ import { getSessionEmail } from './api/_lib/session.js';
 export const config = { matcher: ['/((?!api/auth/).*)'] };
 
 export default async function middleware(request) {
-  if (await getSessionEmail(request.headers.get('cookie'))) return;
-
   const { pathname } = new URL(request.url);
+  const authed = await getSessionEmail(request.headers.get('cookie'));
+
+  // the login page and its logo must load without a session; once signed in, bounce
+  // away from the login page itself instead of showing it again
+  if (pathname === '/login.html' || pathname === '/njco-logo.png') {
+    if (authed && pathname === '/login.html') return Response.redirect(new URL('/', request.url), 302);
+    return;
+  }
+
+  if (authed) return;
+
   if (pathname.startsWith('/api/')) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return Response.redirect(new URL('/api/auth/login', request.url), 302);
+  return Response.redirect(new URL('/login.html', request.url), 302);
 }
